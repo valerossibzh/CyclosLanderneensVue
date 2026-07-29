@@ -301,7 +301,7 @@ function autoGenerateName() {
     if (r.name && r.name.startsWith(prefix)) {
       const match = r.name.substring(prefix.length).match(/^(\d+)/);
       if (match) {
-        const num = parseInt(match[1]);
+        const num = parseInt(match[1] || '0');
         if (num > maxNum && num < 800) maxNum = num;
       }
     }
@@ -375,13 +375,13 @@ function refreshTable() {
     let dist = (data.length || 0) / 1000.0;
     let diff = data.difficulty !== null && data.difficulty !== undefined ? data.difficulty : -1;
 
-    return elev >= elevationRange.value[0]
-      && elev <= elevationRange.value[1]
-      && dist >= distanceRange.value[0]
-      && dist <= distanceRange.value[1]
+    return elev >= elevationRange.value[0]!
+      && elev <= elevationRange.value[1]!
+      && dist >= distanceRange.value[0]!
+      && dist <= distanceRange.value[1]!
       && orientationAllowed
-      && ((diff == -1 && difficultyRange.value[0] == 0) || (diff >= difficultyRange.value[0]
-        && diff <= difficultyRange.value[1]));
+      && ((diff == -1 && difficultyRange.value[0]! == 0) || (diff >= difficultyRange.value[0]!
+        && diff <= difficultyRange.value[1]!));
   });
   
   if (filteredRoutes.value.length > 0 && !selectedRowIndex.value) {

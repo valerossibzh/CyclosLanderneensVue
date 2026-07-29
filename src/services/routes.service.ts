@@ -17,6 +17,7 @@ export interface RouteBean {
   link: string;
   strava_polyline: string;
   last_used_date?: string;
+  elevation_data?: string;
 }
 
 export interface CalendarBean {

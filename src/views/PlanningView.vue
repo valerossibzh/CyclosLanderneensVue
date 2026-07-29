@@ -616,7 +616,7 @@ async function loadPlanning() {
 
 function formatDate(dateStr: string) {
   if (!dateStr) return "";
-  const [yStr, mStr, dStr] = dateStr.split("-");
+  const [yStr = '0', mStr = '0', dStr = '0'] = dateStr.split("-");
   const dateObj = new Date(parseInt(yStr), parseInt(mStr) - 1, parseInt(dStr));
   return dateObj.toLocaleDateString("fr-FR", {
     weekday: "short",
@@ -700,8 +700,8 @@ function getDayAnomalies(day: PlanningDay, index: number): string[] {
 
   for (let i = 0; i < validRoutes.length; i++) {
     for (let j = i + 1; j < validRoutes.length; j++) {
-      const r1 = validRoutes[i];
-      const r2 = validRoutes[j];
+      const r1 = validRoutes[i]!;
+      const r2 = validRoutes[j]!;
       const rank1 = getRank(r1.group_name);
       const rank2 = getRank(r2.group_name);
 
@@ -745,7 +745,7 @@ function getDayAnomalies(day: PlanningDay, index: number): string[] {
       let daysBetween = 0;
 
       for (let k = index - 1; k >= 0; k--) {
-        const prevDay = days.value[k];
+        const prevDay = days.value[k]!;
         const prevGroupRoute = prevDay.routes?.find(
           (pr) => pr.group_name === r.group_name && pr.route_id,
         );
@@ -833,11 +833,11 @@ async function confirmOverwritePlanning() {
 }
 
 function addEmptyDay() {
-  let newDateStr;
+  let newDateStr: string;
   if (days.value.length > 0 && days.value[activeTab.value]) {
-    const currentDay = new Date(days.value[activeTab.value].date);
+    const currentDay = new Date(days.value[activeTab.value]!.date);
     currentDay.setDate(currentDay.getDate() + 1);
-    newDateStr = currentDay.toISOString().split("T")[0];
+    newDateStr = currentDay.toISOString().split("T")[0]!;
   } else {
     newDateStr = new Date(
       currentDate.value.getFullYear(),
@@ -845,7 +845,7 @@ function addEmptyDay() {
       1,
     )
       .toISOString()
-      .split("T")[0];
+      .split("T")[0]!;
   }
 
   days.value.push({

@@ -12,6 +12,7 @@ export interface PlanningDay {
   observations: string | null;
   routes: PlanningRoute[];
   is_missing?: boolean;
+  _menuOpen?: boolean;
 }
 
 function decodeText(text: string | null | undefined): string {

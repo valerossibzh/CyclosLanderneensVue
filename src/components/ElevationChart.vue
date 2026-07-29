@@ -51,10 +51,11 @@ const chartOption = computed(() => {
   
   const numPoints = points.length;
   for (let i = 0; i < numPoints; i++) {
-    const alt = points[i][2];
+    const point = points[i];
+    const alt = point ? point[2] : 0;
     const dist = (i / Math.max(1, numPoints - 1)) * totalKm;
     xData.push(dist.toFixed(1) + ' km');
-    yData.push(Math.round(alt));
+    yData.push(Math.round(alt || 0));
   }
 
   const primaryColor = theme.current.value.colors.primary;

@@ -23,7 +23,7 @@ const props = defineProps<{ polylineStr?: string }>();
 
 const zoom = ref(10);
 const center = ref<[number, number]>([48.45, -4.25]); // default around Landerneau
-const bounds = ref<[[number, number], [number, number]] | null>(null);
+const bounds = ref<[[number, number], [number, number]] | undefined>(undefined);
 
 const map = ref<typeof LMap | null>(null);
 const mapContainer = ref<HTMLElement | null>(null);
@@ -50,7 +50,7 @@ function updatePolyline(newVal: string | undefined | null) {
     }
   } else {
     polyline.value = [];
-    bounds.value = null;
+    bounds.value = undefined;
   }
 }
 
