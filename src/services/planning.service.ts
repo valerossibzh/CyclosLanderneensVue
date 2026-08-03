@@ -121,6 +121,16 @@ export class PlanningService {
     return response.json();
   }
 
+  static async getDriveUrl(year: number, month: number): Promise<{url: string}> {
+    const url = `${API_URL}/api2/planning/drive-url/${year}/${month}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.detail || "Fichier non trouvé");
+    }
+    return response.json();
+  }
+
   static async exportPlanning(year: number, month: number): Promise<{status: string, filename: string, path: string}> {
     const url = `${API_URL}/api2/planning/export/${year}/${month}`;
     const response = await fetch(url);

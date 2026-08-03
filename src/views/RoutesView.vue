@@ -76,6 +76,20 @@
           hide-default-footer
           :row-props="rowProps"
         >
+          <template v-slot:item.name="{ item }">
+            <div class="d-flex align-center">
+              {{ item.name }}
+              <v-tooltip location="right" v-if="item.recent_usages && item.recent_usages.length > 0">
+                <template v-slot:activator="{ props }">
+                  <v-icon v-bind="props" size="small" class="ml-2 text-grey-darken-1" icon="mdi-information"></v-icon>
+                </template>
+                <div class="text-caption font-weight-bold mb-1">Dernières utilisations :</div>
+                <div v-for="(usage, uIdx) in item.recent_usages" :key="uIdx" class="text-caption">
+                  {{ formatLastUsed(usage.date) }} - {{ usage.group }}
+                </div>
+              </v-tooltip>
+            </div>
+          </template>
           <template v-slot:item.length="{ item }">
             {{ (item.length / 1000).toFixed(0) }}
           </template>

@@ -53,6 +53,16 @@
         >
           Importer l'année précédente
         </v-btn>
+        <v-btn
+          color="info"
+          variant="tonal"
+          prepend-icon="mdi-google-drive"
+          size="large"
+          :loading="loadingDrive"
+          @click="openPreviousYearDrive"
+        >
+          Ouvrir Drive {{ currentYear - 1 }}
+        </v-btn>
       </div>
     </v-row>
 
@@ -74,6 +84,15 @@
           class="mx-2"
         >
           Dupliquer depuis {{ currentYear - 1 }}
+        </v-btn>
+        <v-btn
+          color="info"
+          prepend-icon="mdi-google-drive"
+          :loading="loadingDrive"
+          @click="openPreviousYearDrive"
+          class="mx-2"
+        >
+          Ouvrir Drive {{ currentYear - 1 }}
         </v-btn>
         <v-btn
           color="secondary"
@@ -143,7 +162,7 @@
                   <template v-slot:prepend>
                     <v-icon color="black">mdi-alert</v-icon>
                   </template>
-                  <strong> Incohérence de difficulté :</strong> {{ anomaly }}
+                  <strong> Attention :</strong> {{ anomaly }}
                 </v-alert>
                 <v-row>
                   <v-col cols="12">
@@ -181,7 +200,7 @@
                               hide-details
                               variant="outlined"
                               class="mx-2 flex-grow-0"
-                              style="width: 280px"
+                              style="width: 350px"
                               prepend-inner-icon="mdi-calendar"
                               @click:clear="day.date = ''"
                             ></v-text-field>
@@ -235,6 +254,7 @@
                       v-model="day.observations"
                       label="Observations de la journée"
                       rows="1"
+                      auto-grow
                       density="compact"
                       variant="outlined"
                       hide-details
@@ -290,7 +310,35 @@
                           prepend-inner-icon="mdi-map-marker-path"
                           hide-details="auto"
                           class="mb-2"
-                        ></v-autocomplete>
+                        >
+                          <template v-slot:append-inner v-if="routeGroup.route_id && getRouteDetails(routeGroup.route_id)?.recent_usages?.length">
+                            <v-tooltip location="top" open-delay="100">
+                              <template v-slot:activator="{ props }">
+                                <v-icon v-bind="props" size="small" class="text-info mt-1" icon="mdi-information"></v-icon>
+                              </template>
+                              <div class="text-caption font-weight-bold mb-1">Dernières utilisations :</div>
+                              <div v-for="(usage, uIdx) in getRouteDetails(routeGroup.route_id)?.recent_usages" :key="uIdx" class="text-caption">
+                                {{ formatLastUsed(usage.date) }} - {{ usage.group }}
+                              </div>
+                            </v-tooltip>
+                          </template>
+                          
+                          <template v-slot:item="{ props, item }">
+                            <v-list-item v-bind="props" :title="item.raw.name">
+                              <template v-slot:append v-if="item.raw.recent_usages?.length">
+                                <v-tooltip location="left" open-delay="100">
+                                  <template v-slot:activator="{ props: tooltipProps }">
+                                    <v-icon v-bind="tooltipProps" size="small" class="text-grey-darken-1" icon="mdi-information"></v-icon>
+                                  </template>
+                                  <div class="text-caption font-weight-bold mb-1">Dernières utilisations :</div>
+                                  <div v-for="(usage, uIdx) in item.raw.recent_usages" :key="uIdx" class="text-caption">
+                                    {{ formatLastUsed(usage.date) }} - {{ usage.group }}
+                                  </div>
+                                </v-tooltip>
+                              </template>
+                            </v-list-item>
+                          </template>
+                        </v-autocomplete>
 
                         <v-btn
                           v-if="!routeGroup.route_id"
@@ -518,6 +566,7 @@ import Map from "@/components/Map.vue";
 
 const currentDate = ref(new Date());
 const loading = ref(false);
+const loadingDrive = ref(false);
 const days = ref<PlanningDay[]>([]);
 const allRoutes = ref<RouteBean[]>([]);
 const activeTab = ref(0);
@@ -641,6 +690,12 @@ function formatTowns(townsStr?: string) {
   return Array.from(new Set(townsStr.split(","))).join(", ");
 }
 
+function formatLastUsed(dateStr?: string) {
+  if (!dateStr || dateStr === "0000-00-00") return 'Jamais';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 function getRouteDetails(
   routeId: string | number | null,
 ): RouteBean | undefined {
@@ -669,6 +724,12 @@ function nextMonth() {
 function getDayAnomalies(day: PlanningDay, index: number): string[] {
   const anomalies: string[] = [];
   if (!day.routes || day.routes.length === 0) return anomalies;
+
+  for (const r of day.routes) {
+    if (!r.route_id) {
+      anomalies.push(`Aucun circuit sélectionné pour le ${r.group_name}.`);
+    }
+  }
 
   const getRank = (name: string) => {
     const n = (name || "").toLowerCase();
@@ -806,6 +867,24 @@ async function duplicatePlanning() {
     );
   } catch (e: any) {
     showSnackbar(e.message || "Erreur lors de la duplication", "error");
+  }
+}
+
+async function openPreviousYearDrive() {
+  loadingDrive.value = true;
+  try {
+    const year = currentDate.value.getFullYear() - 1;
+    const month = currentDate.value.getMonth() + 1;
+    const res = await PlanningService.getDriveUrl(year, month);
+    if (res && res.url) {
+      window.open(res.url, '_blank');
+    } else {
+      showSnackbar("Fichier introuvable sur Google Drive", "warning");
+    }
+  } catch (e: any) {
+    showSnackbar(e.message || "Fichier introuvable sur Google Drive", "error");
+  } finally {
+    loadingDrive.value = false;
   }
 }
 
