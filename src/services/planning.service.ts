@@ -105,7 +105,7 @@ export class PlanningService {
     return response.json();
   }
 
-  static async suggestRoute(date: string, group_name: string, current_route_id?: string | null, mode?: 'easier' | 'harder'): Promise<any> {
+  static async suggestRoute(date: string, group_name: string, current_route_id?: string | null, mode?: 'easier' | 'harder' | 'equivalent'): Promise<any> {
     let url = `${API_URL}/api2/planning/suggest-route/find?date=${date}&group_name=${encodeURIComponent(group_name)}`;
     if (current_route_id) {
       url += `&current_route_id=${current_route_id}`;

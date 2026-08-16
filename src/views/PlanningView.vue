@@ -54,6 +54,7 @@
           Importer l'année précédente
         </v-btn>
         <v-btn
+          v-if="days.length > 0"
           color="info"
           variant="tonal"
           prepend-icon="mdi-google-drive"
@@ -108,16 +109,15 @@
     <v-row v-else>
       <v-col cols="12">
         <v-card color="blue-grey-lighten-5">
-          <v-tabs v-model="activeTab" bg-color="secondary" slider-color="white">
+          <v-tabs v-model="activeTab" bg-color="secondary" hide-slider class="pt-2 px-2">
             <v-tab
               v-for="(day, index) in days"
               :key="index"
               :value="index"
-              selected-class="bg-blue-grey-lighten-5 text-secondary"
-              style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; font-weight: bold"
+              selected-class="planning-tab-selected"
+              class="planning-tab"
               :class="{
-                'text-warning font-weight-bold':
-                  day.is_missing || getDayAnomalies(day, index).length > 0,
+                'has-warning': day.is_missing || getDayAnomalies(day, index).length > 0,
               }"
             >
               <v-icon start v-if="day.is_missing" color="warning"
@@ -168,13 +168,7 @@
                   <v-col cols="12">
                     <div class="d-flex align-center justify-space-between mb-4">
                       <div style="flex: 1">
-                        <v-btn
-                          size="small"
-                          variant="outlined"
-                          color="primary"
-                          @click="addGroup(day)"
-                          >Ajouter un groupe</v-btn
-                        >
+                        <!-- Left space intentionally left empty to balance the flex -->
                       </div>
                       <div
                         class="d-flex align-center justify-center"
@@ -228,26 +222,41 @@
                         style="flex: 1; gap: 8px"
                       >
                         <v-btn
-                          color="secondary"
-                          variant="text"
-                          @click="addEmptyDay"
-                          ><v-icon start>mdi-calendar-plus</v-icon> Ajouter une
-                          journée</v-btn
+                          color="primary"
+                          variant="tonal"
+                          size="small"
+                          @click="addGroup(day)"
                         >
+                          <v-icon start>mdi-account-multiple-plus</v-icon>
+                          Ajouter un groupe
+                        </v-btn>
+                        <v-btn
+                          color="secondary"
+                          variant="tonal"
+                          size="small"
+                          @click="addEmptyDay"
+                        >
+                          <v-icon start>mdi-calendar-plus</v-icon>
+                          Ajouter un jour
+                        </v-btn>
                         <v-btn
                           color="warning"
-                          variant="text"
+                          variant="tonal"
+                          size="small"
                           @click="resetDay(day)"
-                          ><v-icon start>mdi-restore</v-icon>
-                          Réinitialiser</v-btn
                         >
+                          <v-icon start>mdi-restore</v-icon>
+                          Réinitialiser
+                        </v-btn>
                         <v-btn
                           color="error"
-                          variant="text"
+                          variant="tonal"
+                          size="small"
                           @click="deleteDay(day, index)"
-                          ><v-icon start>mdi-delete</v-icon> Supprimer ce
-                          jour</v-btn
                         >
+                          <v-icon start>mdi-delete</v-icon>
+                          Supprimer
+                        </v-btn>
                       </div>
                     </div>
                     <v-textarea
@@ -372,6 +381,22 @@
                               "
                             >
                               Plus facile
+                            </v-btn>
+                            <v-btn
+                              color="success"
+                              variant="tonal"
+                              size="small"
+                              style="flex: 1"
+                              prepend-icon="mdi-swap-horizontal"
+                              @click="
+                                suggestRouteForGroup(
+                                  day.date,
+                                  routeGroup,
+                                  'equivalent',
+                                )
+                              "
+                            >
+                              Équivalent
                             </v-btn>
                             <v-btn
                               color="warning"
@@ -645,7 +670,12 @@ const nextMonthName = computed(() => {
 });
 
 onMounted(async () => {
-  allRoutes.value = await RoutesService.getRoutes();
+  loading.value = true;
+  try {
+    allRoutes.value = await RoutesService.getRoutes();
+  } catch (e) {
+    console.error(e);
+  }
   await loadPlanning();
 });
 
@@ -988,7 +1018,7 @@ function removeGroup(day: any, rIdx: number) {
 async function suggestRouteForGroup(
   dateStr: string,
   routeGroup: any,
-  mode?: "easier" | "harder",
+  mode?: "easier" | "harder" | "equivalent",
 ) {
   loading.value = true;
   try {
@@ -1100,6 +1130,39 @@ function showSnackbar(text: string, color: string) {
 </script>
 
 <style scoped>
+.planning-tab {
+  transition: all 0.3s ease;
+  border-radius: 12px 12px 0 0 !important;
+  margin: 0 4px;
+  text-transform: none !important;
+  font-weight: 500;
+  letter-spacing: normal !important;
+  opacity: 0.8;
+}
+
+.planning-tab:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.planning-tab-selected {
+  background-color: #eceff1 !important; /* blue-grey-lighten-5 */
+  color: #1a237e !important; /* highlight text color */
+  opacity: 1;
+  font-weight: 800;
+  font-size: 1.05rem !important;
+  box-shadow: 0px -6px 12px rgba(0, 0, 0, 0.15) !important;
+  z-index: 2;
+}
+
+.planning-tab-selected.has-warning {
+  color: #d84315 !important;
+}
+
+.has-warning {
+  color: #ffb74d !important;
+}
+
 :deep(.v-window-item) {
   transition: none !important;
 }

@@ -10,59 +10,105 @@
         </div>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col cols="12" md="2">
-        <v-text-field
-          v-model="nameFilter"
-          label="Filtrer par Nom"
-          clearable
-          @update:modelValue="refreshTable"
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" md="3">
-        <div class="text-caption">Distance (km)</div>
-        <v-range-slider
-          v-model="distanceRange"
-          :min="0"
-          :max="200"
-          :step="10"
-          thumb-label="always"
-          @update:modelValue="refreshTable"
-        ></v-range-slider>
-      </v-col>
-      <v-col cols="12" md="3">
-        <div class="text-caption">Dénivelé (m)</div>
-        <v-range-slider
-          v-model="elevationRange"
-          :min="0"
-          :max="3000"
-          :step="100"
-          thumb-label="always"
-          @update:modelValue="refreshTable"
-        ></v-range-slider>
-      </v-col>
-      <v-col cols="12" md="4">
-        <div class="text-caption">Difficulté</div>
-        <v-range-slider
-          v-model="difficultyRange"
-          :min="0"
-          :max="15"
-          :step="1"
-          thumb-label="always"
-          @update:modelValue="refreshTable"
-        ></v-range-slider>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12">
-        <div class="text-subtitle-1">Orientations</div>
-        <v-chip-group v-model="selectedOrientations" multiple @update:modelValue="refreshTable">
-          <v-chip v-for="o in orientations" :key="o" :value="o" filter>
-            {{ o }}
-          </v-chip>
-        </v-chip-group>
-      </v-col>
-    </v-row>
+    <v-card class="mb-6 elevation-1 rounded-lg" color="grey-lighten-4">
+      <v-card-text>
+        <div class="d-flex align-center mb-4">
+          <v-icon color="primary" class="mr-2">mdi-filter-variant</v-icon>
+          <span class="text-h6 font-weight-bold text-grey-darken-3">Filtres de recherche</span>
+        </div>
+        
+        <v-row dense class="align-center mt-2">
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="nameFilter"
+              label="Rechercher par nom..."
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+              prepend-inner-icon="mdi-magnify"
+              bg-color="white"
+              @update:modelValue="refreshTable"
+            ></v-text-field>
+          </v-col>
+          
+          <v-col cols="12" md="3" class="px-4">
+            <div class="d-flex justify-space-between mb-1">
+              <span class="text-caption font-weight-bold text-grey-darken-1">Distance</span>
+              <span class="text-caption font-weight-bold text-primary">{{ distanceRange[0] }} - {{ distanceRange[1] }} km</span>
+            </div>
+            <v-range-slider
+              v-model="distanceRange"
+              :min="0"
+              :max="200"
+              :step="10"
+              color="primary"
+              track-color="grey-lighten-2"
+              hide-details
+              @update:modelValue="refreshTable"
+            ></v-range-slider>
+          </v-col>
+          
+          <v-col cols="12" md="3" class="px-4">
+            <div class="d-flex justify-space-between mb-1">
+              <span class="text-caption font-weight-bold text-grey-darken-1">Dénivelé</span>
+              <span class="text-caption font-weight-bold text-primary">{{ elevationRange[0] }} - {{ elevationRange[1] }} m</span>
+            </div>
+            <v-range-slider
+              v-model="elevationRange"
+              :min="0"
+              :max="3000"
+              :step="100"
+              color="primary"
+              track-color="grey-lighten-2"
+              hide-details
+              @update:modelValue="refreshTable"
+            ></v-range-slider>
+          </v-col>
+          
+          <v-col cols="12" md="3" class="px-4">
+            <div class="d-flex justify-space-between mb-1">
+              <span class="text-caption font-weight-bold text-grey-darken-1">Difficulté</span>
+              <span class="text-caption font-weight-bold text-primary">{{ difficultyRange[0] }} - {{ difficultyRange[1] }}</span>
+            </div>
+            <v-range-slider
+              v-model="difficultyRange"
+              :min="0"
+              :max="15"
+              :step="1"
+              color="primary"
+              track-color="grey-lighten-2"
+              hide-details
+              @update:modelValue="refreshTable"
+            ></v-range-slider>
+          </v-col>
+        </v-row>
+        
+        <v-divider class="my-4"></v-divider>
+        
+        <div class="d-flex align-center">
+          <span class="text-caption font-weight-bold text-grey-darken-1 mr-4">Orientations :</span>
+          <v-chip-group 
+            v-model="selectedOrientations" 
+            multiple 
+            @update:modelValue="refreshTable" 
+            selected-class="text-primary font-weight-bold border-primary bg-blue-lighten-5"
+          >
+            <v-chip 
+              v-for="o in orientations" 
+              :key="o" 
+              :value="o" 
+              filter 
+              variant="outlined" 
+              size="small" 
+              class="bg-white text-grey-darken-1"
+            >
+              {{ o }}
+            </v-chip>
+          </v-chip-group>
+        </div>
+      </v-card-text>
+    </v-card>
 
     <v-row>
       <v-col cols="12" md="8">
