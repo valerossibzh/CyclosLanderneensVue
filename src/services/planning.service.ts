@@ -140,4 +140,13 @@ export class PlanningService {
     }
     return response.json();
   }
+
+  static async getLastUsages(year: number, month: number): Promise<Record<string, string>> {
+    const url = `${API_URL}/api2/planning/last-usages?year=${year}&month=${month}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      return {};
+    }
+    return response.json();
+  }
 }

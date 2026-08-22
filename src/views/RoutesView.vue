@@ -269,6 +269,7 @@ import { RoutesService, type RouteBean } from '@/services/routes.service';
 import { useMapStore } from '@/stores/mapStore';
 import Map from '@/components/Map.vue';
 import ElevationChart from '@/components/ElevationChart.vue';
+import { calculateDifficulty } from '@/utils/routeUtils';
 
 const mapStore = useMapStore();
 
@@ -320,18 +321,7 @@ const addForm = ref({
 });
 
 const computedDifficulty = computed(() => {
-  const b8 = addForm.value.distance || 0;
-  const b9 = addForm.value.elevation || 0;
-  if (!b8 && !b9) return 0;
-  
-  const val1 = b8 / 13;
-  const val2 = b9 / 100;
-  const val3 = b9 > 100 ? 3 : 0;
-  const val4 = (b9 > 0 && (b8 / b9) > 10) ? 1 : 0;
-  const val5 = b8 < 60 ? 1 : 0;
-  
-  const innerSum = Math.floor(val1 + val2 + val3 + val4 - val5);
-  return Math.floor(innerSum / 2.5);
+  return calculateDifficulty(addForm.value.distance, addForm.value.elevation);
 });
 
 watch([() => addForm.value.type, () => addForm.value.distance, () => addForm.value.elevation, () => addForm.value.orientation], () => {

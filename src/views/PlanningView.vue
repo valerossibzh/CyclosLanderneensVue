@@ -608,6 +608,7 @@ const loadingDrive = ref(false);
 const days = ref<PlanningDay[]>([]);
 const allRoutes = ref<RouteBean[]>([]);
 const activeTab = ref(0);
+const lastUsages = ref<Record<string, string>>({});
 
 const snackbar = ref(false);
 const snackbarText = ref("");
@@ -697,6 +698,14 @@ async function loadPlanning() {
   try {
     const year = currentDate.value.getFullYear();
     const month = currentDate.value.getMonth() + 1;
+    
+    // Fetch last usages for warning calculations
+    try {
+      lastUsages.value = await PlanningService.getLastUsages(year, month);
+    } catch (e) {
+      console.warn("Erreur lors de la récupération de l'historique récent");
+    }
+    
     days.value = await PlanningService.getPlanning(year, month);
     activeTab.value = 0;
   } catch (e) {
@@ -771,6 +780,26 @@ function getDayAnomalies(day: PlanningDay, index: number): string[] {
   for (const r of day.routes) {
     if (!r.route_id) {
       anomalies.push(`Aucun circuit sélectionné pour le ${r.group_name}.`);
+    }
+  }
+
+  // Vérification de réutilisation dans les 2 mois pour Mercredi (3) et Vendredi (5)
+  const d = new Date(day.date);
+  const dayOfWeek = d.getDay();
+  if (dayOfWeek === 3 || dayOfWeek === 5) {
+    for (const r of day.routes) {
+      if (r.route_id && lastUsages.value[r.route_id]) {
+        const lastUsageDate = new Date(lastUsages.value[r.route_id]);
+        // Difference in days
+        const diffTime = Math.abs(d.getTime() - lastUsageDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // If last usage was before the current day and within 60 days
+        if (lastUsageDate < d && diffDays <= 60) {
+          const frDate = lastUsageDate.toLocaleDateString('fr-FR');
+          anomalies.push(`Attention: le circuit du ${r.group_name} a déjà été utilisé récemment par un groupe (le ${frDate}).`);
+        }
+      }
     }
   }
 
