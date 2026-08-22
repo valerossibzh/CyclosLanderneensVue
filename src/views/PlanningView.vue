@@ -788,16 +788,19 @@ function getDayAnomalies(day: PlanningDay, index: number): string[] {
   const dayOfWeek = d.getDay();
   if (dayOfWeek === 3 || dayOfWeek === 5) {
     for (const r of day.routes) {
-      if (r.route_id && lastUsages.value[r.route_id]) {
-        const lastUsageDate = new Date(lastUsages.value[r.route_id]);
-        // Difference in days
-        const diffTime = Math.abs(d.getTime() - lastUsageDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        // If last usage was before the current day and within 60 days
-        if (lastUsageDate < d && diffDays <= 60) {
-          const frDate = lastUsageDate.toLocaleDateString('fr-FR');
-          anomalies.push(`Attention: le circuit du ${r.group_name} a déjà été utilisé récemment par un groupe (le ${frDate}).`);
+      if (r.route_id) {
+        const lastUsage = lastUsages.value[r.route_id];
+        if (lastUsage) {
+          const lastUsageDate = new Date(lastUsage);
+          // Difference in days
+          const diffTime = Math.abs(d.getTime() - lastUsageDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          // If last usage was before the current day and within 60 days
+          if (lastUsageDate < d && diffDays <= 60) {
+            const frDate = lastUsageDate.toLocaleDateString('fr-FR');
+            anomalies.push(`Attention: le circuit du ${r.group_name} a déjà été utilisé récemment par un groupe (le ${frDate}).`);
+          }
         }
       }
     }
