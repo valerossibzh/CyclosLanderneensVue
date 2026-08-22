@@ -209,6 +209,16 @@
                             "
                           ></v-date-picker>
                         </v-menu>
+                        <v-text-field
+                          v-model="day.departure_time"
+                          type="time"
+                          density="compact"
+                          hide-details
+                          variant="outlined"
+                          class="mx-2 flex-grow-0"
+                          style="width: 140px"
+                          prepend-inner-icon="mdi-clock-outline"
+                        ></v-text-field>
                         <v-btn
                           icon="mdi-chevron-right"
                           size="small"
@@ -281,28 +291,31 @@
                     :key="rIdx"
                     cols="12"
                     md
-                    style="min-width: 250px"
+                    style="min-width: 250px; max-width: 600px;"
                   >
                     <v-card
                       class="h-100 elevation-3 border-t-lg"
                       :style="'border-top-color: var(--v-primary-base) !important;'"
                     >
                       <v-card-title
-                        class="d-flex align-center bg-grey-lighten-4"
+                        class="d-flex align-center bg-grey-lighten-4 px-3 py-2"
+                        style="white-space: normal"
                       >
-                        <v-text-field
+                        <v-textarea
                           v-model="routeGroup.group_name"
                           density="compact"
                           hide-details
                           variant="underlined"
-                          class="font-weight-bold"
-                          style="font-size: 1.1rem"
-                        ></v-text-field>
-                        <v-spacer></v-spacer>
+                          class="font-weight-bold flex-grow-1"
+                          style="font-size: 0.95rem; line-height: 1.2"
+                          rows="1"
+                          auto-grow
+                        ></v-textarea>
                         <v-btn
                           icon="mdi-close"
                           size="small"
                           variant="text"
+                          class="ml-2 flex-shrink-0"
                           @click="removeGroup(day, rIdx)"
                         ></v-btn>
                       </v-card-title>
@@ -700,7 +713,7 @@ function formatDate(dateStr: string) {
   return dateObj.toLocaleDateString("fr-FR", {
     weekday: "short",
     day: "numeric",
-    month: "short"
+    month: "numeric"
   });
 }
 
@@ -763,6 +776,7 @@ function getDayAnomalies(day: PlanningDay, index: number): string[] {
 
   const getRank = (name: string) => {
     const n = (name || "").toLowerCase();
+    if (n.includes("journée") || n.includes("journee")) return 99;
     if (n.includes("a/b") || n.includes("long")) return 1;
     if (n.includes(" a") || n === "a" || n === "grp a" || n === "groupe a")
       return 1;
@@ -957,16 +971,32 @@ function addEmptyDay() {
       .split("T")[0]!;
   }
 
+  let defaultTime = "08:00";
+  let defaultRoutes = [
+    { group_name: "Grp A/B", route_id: null },
+    { group_name: "Grp C", route_id: null },
+    { group_name: "Grp D", route_id: null },
+    { group_name: "Grp E", route_id: null },
+    { group_name: "Grp F", route_id: null },
+  ];
+  const dateObj = new Date(newDateStr);
+  if (dateObj.getDay() === 3) {
+    defaultTime = "13:30";
+    defaultRoutes = [
+      { group_name: "Circuit long", route_id: null },
+      { group_name: "Circuit court", route_id: null }
+    ];
+  } else if (dateObj.getDay() === 5) {
+    defaultTime = "09:00";
+    defaultRoutes = [{ group_name: "Circuit unique", route_id: null }];
+  }
+
   days.value.push({
     appointment_id: null,
     date: newDateStr,
+    departure_time: defaultTime,
     observations: "",
-    routes: [
-      { group_name: "Groupe A/B", route_id: null },
-      { group_name: "Groupe C", route_id: null },
-      { group_name: "Groupe D", route_id: null },
-      { group_name: "Groupe E", route_id: null },
-    ],
+    routes: defaultRoutes,
   });
 
   activeTab.value = days.value.length - 1;
@@ -1058,9 +1088,29 @@ async function saveMonth() {
     // Trigger file generation on disk
     const year = currentDate.value.getFullYear();
     const month = currentDate.value.getMonth() + 1;
-    const exportRes = await PlanningService.exportPlanning(year, month);
-    
-    showSnackbar(`Fichier généré sur Google Drive : ${exportRes.filename}`, "success");
+
+    const doExport = async () => {
+      loading.value = true;
+      try {
+        const exportRes = await PlanningService.exportPlanning(year, month);
+        showSnackbar(`Fichier généré sur Google Drive : ${exportRes.filename}`, "success");
+      } catch (e: any) {
+        showSnackbar(e.message || "Erreur lors de la génération du fichier", "error");
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      confirmAction(
+        "Génération Google Drive",
+        "Vous êtes en mode développement (local). Voulez-vous vraiment générer le fichier Google Drive (cela risque d'écraser la version en production) ?",
+        "warning",
+        doExport
+      );
+    } else {
+      await doExport();
+    }
 
   } catch (e) {
     showSnackbar("Erreur lors de la sauvegarde du mois", "error");

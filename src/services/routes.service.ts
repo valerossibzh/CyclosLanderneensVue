@@ -79,6 +79,11 @@ export class RoutesService {
     return res.json();
   }
 
+  static async getWeather(date: number): Promise<any> {
+    const res = await fetch(`${API_URL}/api2/getWeather?date=${date}`);
+    return res.json();
+  }
+
   static async addRoute(routeData: any): Promise<any> {
     const res = await fetch(`${API_URL}/api2/addRoute`, {
       method: 'POST',

@@ -14,12 +14,12 @@
         Cyclotouristes Landernéens
       </v-toolbar-title>
 
-      <v-btn to="/" exact variant="text" class="mx-1 nav-btn"
-        >Bibliothèque des circuits</v-btn
-      >
+      <v-btn to="/" variant="text" class="mx-1 nav-btn">Circuits</v-btn>
       <v-btn to="/planning" variant="text" class="mx-1 nav-btn">Planning</v-btn>
+      <v-btn to="/mobile" variant="text" class="mx-1 nav-btn">Mobile (Preview)</v-btn>
 
       <v-spacer></v-spacer>
+      <v-divider vertical class="mx-4 my-3"></v-divider>
 
       <v-btn
         v-if="isAdmin"
@@ -28,7 +28,7 @@
         color="secondary"
         class="mx-1"
       >
-        Trombinoscope
+        <v-icon start>mdi-account-multiple</v-icon> Générer Trombinoscope
       </v-btn>
       <v-btn
         v-if="isAdmin"
@@ -49,7 +49,14 @@
       >
         <v-icon start>mdi-cloud-sync</v-icon> Tout Synchroniser
       </v-btn>
-
+      <v-btn
+        v-if="isAdmin"
+        @click="logout"
+        variant="text"
+        color="error"
+        class="mx-1"
+        icon="mdi-logout"
+      ></v-btn>
     </v-app-bar>
 
     <v-main>
@@ -71,13 +78,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useRoute } from "vue-router";
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { RoutesService } from "@/services/routes.service";
 
 const route = useRoute();
+const router = useRouter();
 
-const isAdmin = true; //computed(() => route.query.isAdmin === "true");
+const isAuthenticated = ref(localStorage.getItem('isAuthenticated') === 'true');
+const isAdmin = computed(() => isAuthenticated.value);
+
+function checkAuth() {
+  isAuthenticated.value = localStorage.getItem('isAuthenticated') === 'true';
+}
+
+onMounted(() => {
+  window.addEventListener('auth-changed', checkAuth);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('auth-changed', checkAuth);
+});
+
 const isMobile = computed(() => window.location.href.indexOf("mobile") > 0);
 
 const snackbar = ref({
@@ -91,6 +113,13 @@ const syncingAll = ref(false);
 function showMessage(text: string) {
   snackbar.value.text = text;
   snackbar.value.show = true;
+}
+
+function logout() {
+  localStorage.removeItem('isAuthenticated');
+  window.dispatchEvent(new Event('auth-changed'));
+  showMessage("Vous êtes déconnecté");
+  router.push('/');
 }
 
 function openTrombi() {
@@ -139,7 +168,6 @@ async function synchronizeAll() {
     syncingAll.value = false;
   }
 }
-
 </script>
 
 <style>

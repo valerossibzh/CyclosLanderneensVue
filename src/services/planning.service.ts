@@ -9,6 +9,7 @@ export interface PlanningRoute {
 export interface PlanningDay {
   appointment_id: number | null;
   date: string;
+  departure_time?: string | null;
   observations: string | null;
   routes: PlanningRoute[];
   is_missing?: boolean;
